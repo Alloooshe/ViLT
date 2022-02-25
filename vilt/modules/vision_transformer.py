@@ -39,6 +39,7 @@ from timm.models.resnet import resnet26d, resnet50d
 from timm.models.resnetv2 import ResNetV2
 from timm.models.registry import register_model
 from torchvision import transforms
+import torchvision.models as models
 
 _logger = logging.getLogger(__name__)
 
@@ -392,6 +393,17 @@ class PatchEmbed(nn.Module):
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = num_patches
+        #TODO add CNN embedder
+
+        resnet18 = models.resnet18(pretrained=True, progress=True)
+        layers = list(resnet18.children())[:7]
+        layers.append(nn.Conv2d(
+            256,
+            768,
+            kernel_size=1,
+            stride=1,
+            bias=False))
+        self.proj_cnn= nn.Sequential(*layers)
 
         self.proj = nn.Conv2d(
             in_chans,
@@ -404,7 +416,7 @@ class PatchEmbed(nn.Module):
     def forward(self, x):
         B, C, H, W = x.shape
         # FIXME look at relaxing size constraints
-        x = self.proj(x)
+        x = self.proj_cnn(x)
         return x
 
 

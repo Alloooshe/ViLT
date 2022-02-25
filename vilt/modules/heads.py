@@ -47,6 +47,7 @@ class MPPHead(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
+        #TODO add CNN decoder
         self.decoder = nn.Linear(config.hidden_size, 256 * 3)
 
     def forward(self, x):
