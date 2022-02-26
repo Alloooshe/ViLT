@@ -577,7 +577,8 @@ class VisionTransformer(nn.Module):
             torch.bernoulli(torch.full(labels.shape[:-1], 0.8)).bool() & masked_indices
         )
         tt = self.mask_token.to(feats)
-        print("output feates shape ----------- ",tt.shape)
+        print("output indices_replaced shape ----------- ",indices_replaced.shape)
+        print("output feats shape ----------- ",feats.shape)
         feats[indices_replaced] = tt
 
         return feats, labels
