@@ -403,6 +403,8 @@ class PatchEmbed(nn.Module):
             kernel_size=1,
             stride=1,
             bias=False))
+        self.shapes = (4,768,18,19)
+        self.embed_dim =embed_dim
         self.proj_cnn= nn.Sequential(*layers)
         print ("patch size  --------------- ", patch_size)
         self.proj = nn.Conv2d(
@@ -422,9 +424,10 @@ class PatchEmbed(nn.Module):
         x1 = self.proj(x)
         print("x0 shape ",x0.shape)
         print("x1 shape " , x1.shape)
+        self.shapes = x0.shape
         return x0
     def getDims(self):
-        return 1,1,32,32
+        return self.shapes
 
 
 class VisionTransformer(nn.Module):
