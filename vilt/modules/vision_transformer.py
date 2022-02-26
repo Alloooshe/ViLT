@@ -412,6 +412,8 @@ class PatchEmbed(nn.Module):
             stride=patch_size,
             bias=False if no_patch_embed_bias else True,
         )
+        print("proj dims -------------------- ",self.proj.weight.shape)
+        print("proj_cnn dims -------------- ",self.getDims())
 
     def forward(self, x):
         B, C, H, W = x.shape
