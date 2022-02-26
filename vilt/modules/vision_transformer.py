@@ -416,8 +416,11 @@ class PatchEmbed(nn.Module):
     def forward(self, x):
         B, C, H, W = x.shape
         # FIXME look at relaxing size constraints
-        x = self.proj_cnn(x)
-        return x
+        x0 = self.proj_cnn(x)
+        x1 = self.proj(x)
+        print("x0 shape ",x0.shape)
+        print("x1 shape " , x1.shape)
+        return x0
 
 
 class VisionTransformer(nn.Module):
@@ -571,7 +574,7 @@ class VisionTransformer(nn.Module):
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.proj.weight.shape
-
+        print("input shape ",_x.shape)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
