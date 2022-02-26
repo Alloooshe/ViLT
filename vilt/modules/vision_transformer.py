@@ -545,7 +545,7 @@ class VisionTransformer(nn.Module):
         Prepare masked tokens inputs/labels for masked patch prediction: 80% MASK, 10% random, 10% original.
         """
         img_unnorm = orig_image * 0.5 + 0.5
-        _, _, ph, pw = self.patch_embed.getDims()
+        _, _, ph, pw = self.patch_embed.proj.weight.shape
         with torch.no_grad():
             img_unnorm_patch = F.conv2d(
                 img_unnorm,
@@ -575,7 +575,7 @@ class VisionTransformer(nn.Module):
         return feats, labels
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
-        _, _, ph, pw = self.patch_embed.getDims()
+        _, _, ph, pw = self.patch_embed.proj.weight.shape
         print("input shape ",_x.shape)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
