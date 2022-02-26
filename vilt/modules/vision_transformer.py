@@ -419,9 +419,9 @@ class PatchEmbed(nn.Module):
         B, C, H, W = x.shape
         # FIXME look at relaxing size constraints
         x0 = self.proj_cnn(x)
-        # x1 = self.proj(x)
-        # print("x0 shape ",x0.shape)
-        # print("x1 shape " , x1.shape)
+        x1 = self.proj(x)
+        print("x0 shape ",x0.shape)
+        print("x1 shape " , x1.shape)
         return x0
     def getDims(self):
         return list(self.proj_cnn.children())[-1].weight.shape
