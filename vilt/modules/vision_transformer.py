@@ -425,9 +425,10 @@ class PatchEmbed(nn.Module):
         print("x0 shape ",x0.shape)
         print("x1 shape " , x1.shape)
         self.shapes = x0.shape
-        return x0
+        return x1
     def getDims(self):
-        return self.shapes
+        print("getDims shape ",self.shapes)
+        return self.proj.weight.shape
 
 
 class VisionTransformer(nn.Module):
