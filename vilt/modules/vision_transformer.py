@@ -404,7 +404,7 @@ class PatchEmbed(nn.Module):
             stride=1,
             bias=False))
         self.proj_cnn= nn.Sequential(*layers)
-
+        print ("patch size  --------------- ", patch_size)
         self.proj = nn.Conv2d(
             in_chans,
             embed_dim,
