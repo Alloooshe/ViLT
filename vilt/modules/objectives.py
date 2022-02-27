@@ -129,6 +129,9 @@ def compute_mpp(pl_module, batch):
     )
     mpp_labels = infer["image_labels"]
 
+    print("mpp logits shape ",mpp_logits.shape)
+    print("mpp labels shape ",mpp_labels.shape)
+
     mpp_loss = F.cross_entropy(
         mpp_logits.view(-1, 256),
         mpp_labels.view(-1),
