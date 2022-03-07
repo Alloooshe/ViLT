@@ -417,15 +417,12 @@ class PatchEmbed(nn.Module):
         print("proj dims -------------------- ",self.proj.weight.shape)
         print("proj_cnn dims -------------- ",self.getDims())
 
+    def apply_cnn_prepatch(self,x):
+        return self.proj_cnn(x)
+
     def forward(self, x):
-        B, C, H, W = x.shape
-        # FIXME look at relaxing size constraints
-        x0 = self.proj_cnn(x)
-        x1 = self.proj(x)
-        print("x0 shape ",x0.shape)
-        print("x1 shape " , x1.shape)
-        self.shapes = x0.shape
-        return x0
+        return  self.proj(x)
+
     def getDims(self):
         print("getDims shape ",self.shapes)
         return self.proj.weight.shape
@@ -550,6 +547,7 @@ class VisionTransformer(nn.Module):
         """
         Prepare masked tokens inputs/labels for masked patch prediction: 80% MASK, 10% random, 10% original.
         """
+
         img_unnorm = orig_image * 0.5 + 0.5
         _, _, ph, pw = self.patch_embed.getDims()
         with torch.no_grad():
@@ -557,7 +555,7 @@ class VisionTransformer(nn.Module):
                 img_unnorm,
                 weight=torch.ones(3, 1, ph, pw).to(img_unnorm) / (ph * pw),
                 bias=None,
-                stride=(ph, pw),
+                stride=(ph,pw),
                 padding=0,
                 groups=3,
             )
@@ -577,16 +575,17 @@ class VisionTransformer(nn.Module):
         indices_replaced = (
             torch.bernoulli(torch.full(labels.shape[:-1], 0.8)).bool() & masked_indices
         )
-        tt = self.mask_token.to(feats)
-        print("output indices_replaced shape ----------- ",indices_replaced.shape)
-        print("output feats shape ----------- ",feats.shape)
-        feats[indices_replaced] = tt
+
+        # print("output indices_replaced shape ----------- ",indices_replaced.shape)
+        # print("output feats shape ----------- ",feats.shape)
+        feats[indices_replaced] = self.mask_token.to(feats)
 
         return feats, labels
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
         # print("input shape ",_x.shape)
+        _x = self.patch_embed.apply_cnn_prepatch(_x)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
