@@ -424,7 +424,7 @@ class PatchEmbed(nn.Module):
         return  self.proj(x)
 
     def getDims(self):
-        print("getDims shape ",self.shapes)
+        # print("getDims shape ",self.shapes)
         return self.proj.weight.shape
 
 
@@ -488,7 +488,7 @@ class VisionTransformer(nn.Module):
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
-            in_chans=68,
+            in_chans=in_chans,
             embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.num_patches
@@ -585,7 +585,7 @@ class VisionTransformer(nn.Module):
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
         # print("input shape ",_x.shape)
-        _x = self.patch_embed.apply_cnn_prepatch(_x)
+        # _x = self.patch_embed.apply_cnn_prepatch(_x)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
