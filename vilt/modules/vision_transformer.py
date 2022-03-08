@@ -540,23 +540,23 @@ class VisionTransformer(nn.Module):
         Prepare masked tokens inputs/labels for masked patch prediction: 80% MASK, 10% random, 10% original.
         """
 
-        img_unnorm = orig_image * 0.5 + 0.5
-        _, _, ph, pw = self.patch_embed.getDims()
-        with torch.no_grad():
-            img_unnorm_patch = F.conv2d(
-                img_unnorm,
-                weight=torch.ones(channel_num , 1, ph, pw).to(img_unnorm) / (ph * pw),
-                bias=None,
-                stride=(ph,pw),
-                padding=0,
-                groups=3,
-            )
-        labels = (
-            ((img_unnorm_patch * 255).long().flatten(start_dim=2, end_dim=3))
-            .permute(0, 2, 1)
-            .contiguous()
-        )
-        # labels = feats
+        # img_unnorm = orig_image * 0.5 + 0.5
+        # _, _, ph, pw = self.patch_embed.getDims()
+        # with torch.no_grad():
+        #     img_unnorm_patch = F.conv2d(
+        #         img_unnorm,
+        #         weight=torch.ones(channel_num , 1, 1, 1).to(img_unnorm) ,
+        #         bias=None,
+        #         stride=1,
+        #         padding=0,
+        #         groups=3,
+        #     )
+        # labels = (
+        #     ((img_unnorm_patch * 255).long().flatten(start_dim=2, end_dim=3))
+        #     .permute(0, 2, 1)
+        #     .contiguous()
+        # )
+        labels = feats
 
         # We sample a few tokens in each sequence for MLM training (with probability `self.mlm_probability`)
         probability_matrix = torch.full(labels.shape[:-1], 0.15)
