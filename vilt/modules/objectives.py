@@ -137,7 +137,6 @@ def compute_mpp(pl_module, batch):
     mpp_loss = F.mse_loss(
         mpp_logits.view(-1),
         mpp_labels.view(-1),
-        ignore_index=-100,
     )
 
     ret = {
