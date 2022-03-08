@@ -138,6 +138,7 @@ def compute_mpp(pl_module, batch):
         mpp_logits.view(-1),
         mpp_labels.view(-1),
     )
+    print(mpp_loss)
 
     ret = {
         "mpp_loss": mpp_loss,
