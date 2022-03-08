@@ -395,17 +395,9 @@ class PatchEmbed(nn.Module):
         self.num_patches = num_patches
         #TODO add CNN embedder
 
-        resnet18 = models.resnet18(pretrained=True, progress=True)
-        layers = list(resnet18.children())[:7]
-        layers.append(nn.Conv2d(
-            256,
-            768,
-            kernel_size=1,
-            stride=1,
-            bias=False))
-        self.shapes = (4,768,18,19)
+
         self.embed_dim =embed_dim
-        self.proj_cnn= nn.Sequential(*layers)
+
         print ("patch size  --------------- ", patch_size)
         self.proj = nn.Conv2d(
             in_chans,
@@ -417,8 +409,6 @@ class PatchEmbed(nn.Module):
         print("proj dims -------------------- ",self.proj.weight.shape)
         print("proj_cnn dims -------------- ",self.getDims())
 
-    def apply_cnn_prepatch(self,x):
-        return self.proj_cnn(x)
 
     def forward(self, x):
         return  self.proj(x)
@@ -546,7 +536,7 @@ class VisionTransformer(nn.Module):
     def no_weight_decay(self):
         return {"pos_embed", "cls_token"}
 
-    def mask_tokens(self, orig_image, feats):
+    def mask_tokens(self, orig_image, feats,batch_size,channel_num):
         """
         Prepare masked tokens inputs/labels for masked patch prediction: 80% MASK, 10% random, 10% original.
         """
@@ -556,7 +546,7 @@ class VisionTransformer(nn.Module):
         with torch.no_grad():
             img_unnorm_patch = F.conv2d(
                 img_unnorm,
-                weight=torch.ones(3, 1, ph, pw).to(img_unnorm) / (ph * pw),
+                weight=torch.ones(channel_num , 1, ph, pw).to(img_unnorm) / (ph * pw),
                 bias=None,
                 stride=(ph,pw),
                 padding=0,
@@ -586,7 +576,7 @@ class VisionTransformer(nn.Module):
         return feats, labels
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
-        _, _, ph, pw = self.patch_embed.getDims()
+        BB, CC, ph, pw = self.patch_embed.getDims()
         print("input shape before cnn",_x.shape)
         _x = self.hybrid_backbone(_x)[0]
         print("input shape after cnn", _x.shape)
@@ -630,7 +620,7 @@ class VisionTransformer(nn.Module):
         x_mask = x_mask.flatten(1)
 
         if mask_it:
-            x, label = self.mask_tokens(_x, x)
+            x, label = self.mask_tokens(_x, x,BB, CC)
 
         if (
             max_image_len < 0
