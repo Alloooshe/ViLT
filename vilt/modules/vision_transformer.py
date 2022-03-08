@@ -419,7 +419,7 @@ class PatchEmbed(nn.Module):
         rand_indx = [(randrange(0, H - self.mask_token.shape[0]), randrange(0, W - self.mask_token.shape[1])) for i in range(B)]
         for i in range(B):
             # print(rand_indx[i])
-            labels= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
+            labels[i]= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
             x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]] = self.mask_token
         return  self.proj(x),labels
 
@@ -656,7 +656,6 @@ class VisionTransformer(nn.Module):
         non_valid_row_idx = [
             non_valid_idx[non_valid_idx[:, 0] == u] for u in unique_rows
         ]
-
         valid_nums = [v.size(0) for v in valid_row_idx]
         non_valid_nums = [v.size(0) for v in non_valid_row_idx]
         pad_nums = [max_image_len - v for v in valid_nums]
