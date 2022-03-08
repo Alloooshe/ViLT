@@ -135,14 +135,14 @@ def compute_mpp(pl_module, batch):
     # print("mpp labels shape ",mpp_labels.view(-1).shape)
 
     mpp_loss = F.mse_loss(
-        mpp_logits.view(-1),
-        mpp_labels.view(-1),
+        mpp_logits,
+        mpp_labels.view(-1,3*32*32),
     )
 
     ret = {
         "mpp_loss": mpp_loss,
-        "mpp_logits": mpp_logits.view(-1),
-        "mpp_labels": mpp_labels.view(-1),
+        "mpp_logits": mpp_logits,
+        "mpp_labels": mpp_labels.view(-1,3*32*32),
     }
 
     phase = "train" if pl_module.training else "val"
