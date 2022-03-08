@@ -121,19 +121,21 @@ def compute_mpp(pl_module, batch):
     mpp_logits = pl_module.mpp_score(infer["image_feats"])
     mpp_logits = torch.stack(
         [
-            mpp_logits[:, :, 0:256],
-            mpp_logits[:, :, 256:512],
-            mpp_logits[:, :, 512:768],
+            mpp_logits[:, :, 0:1024],
+            mpp_logits[:, :, 1024:2048],
+            mpp_logits[:, :, 2048:3072],
         ],
         dim=2,
     )
+
+    # mpp_logits = torch.reshape(mpp_logits,(mpp_logits.shape[0],mpp_logits.shape[1],16,16))
     mpp_labels = infer["image_labels"]
 
-    print("mpp logits shape ",mpp_logits.shape)
-    print("mpp labels shape ",mpp_labels.shape)
+    print("mpp logits shape ",mpp_logits.view(-1).shape)
+    print("mpp labels shape ",mpp_labels.view(-1).shape)
 
     mpp_loss = F.cross_entropy(
-        mpp_logits.view(-1, 256),
+        mpp_logits.view(-1),
         mpp_labels.view(-1),
         ignore_index=-100,
     )
