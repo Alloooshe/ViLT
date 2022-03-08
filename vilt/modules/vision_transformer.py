@@ -397,7 +397,7 @@ class PatchEmbed(nn.Module):
         self.patch_size = patch_size
         self.num_patches = num_patches
         #TODO add CNN embedder
-        self.mask_token = torch.zeros((patch_size,patch_size))
+        self.mask_token = torch.zeros(patch_size)
 
         self.embed_dim =embed_dim
 
@@ -419,8 +419,9 @@ class PatchEmbed(nn.Module):
         rand_indx = [(randrange(0, H - self.mask_token.shape[0]), randrange(0, W - self.mask_token.shape[1])) for i in range(B)]
         for i in range(B):
             # print(rand_indx[i])
-            labels[i,:,rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] + self.patch_size]= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] +  self.patch_size]
-            x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] +  self.patch_size] = self.mask_token
+            labels[i,:,rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] + self.patch_size[1]]= \
+                x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
+            x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]] = self.mask_token
         return  self.proj(x),labels
 
     def getDims(self):
