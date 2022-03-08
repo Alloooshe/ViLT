@@ -414,7 +414,6 @@ class PatchEmbed(nn.Module):
         return  self.proj(x)
 
     def getDims(self):
-        print("getDims shape ",self.shapes)
         return self.proj.weight.shape
 
 
