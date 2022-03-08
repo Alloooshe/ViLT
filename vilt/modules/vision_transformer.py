@@ -704,8 +704,8 @@ class VisionTransformer(nn.Module):
 
         if mask_it:
             print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
-            print(f" x_mask !=0 {(x_mask !=0).nonzero()} ")
-            print(f" x !=0 {(x!=0).nonzero()} ")
+            print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
+            print(f" x !=0 {(x==0).nonzero()} ")
             return x, x_mask, (patch_index, (H, W)), label
         else:
             return x, x_mask, (patch_index, (H, W)), None
