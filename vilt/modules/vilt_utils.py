@@ -125,15 +125,15 @@ def epoch_wrapup(pl_module):
         elif loss_name == "mpp":
             pl_module.log(
                 f"{loss_name}/{phase}/r2_epoch",
-                getattr(pl_module, f"{phase}_mpp_r2").compute(),
+                getattr(pl_module, f"{phase}_{loss_name}_r2").compute(),
             )
-            getattr(pl_module, f"{phase}_mpp_r2").reset()
+            getattr(pl_module, f"{phase}_{loss_name}_r2").reset()
 
             pl_module.log(
                 f"{loss_name}/{phase}/loss_epoch",
-                getattr(pl_module, f"{phase}_irtr_loss").compute(),
+                getattr(pl_module, f"{phase}_{loss_name}_loss").compute(),
             )
-            getattr(pl_module, f"{phase}_loss").reset()
+            getattr(pl_module, f"{phase}_{loss_name}_loss").reset()
 
         elif loss_name == "mppd" or loss_name == "mpfr":
             pl_module.log(
