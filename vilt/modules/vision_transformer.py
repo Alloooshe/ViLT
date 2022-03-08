@@ -415,12 +415,11 @@ class PatchEmbed(nn.Module):
 
     def forward(self, x):
         B,C,H,W = x.shape
-        labels  = torch.zeros(x.shape).to(x)
+        labels  = torch.zeros((B,C,self.patch_size[0],self.patch_size[1])).to(x)
         rand_indx = [(randrange(0, H - self.mask_token.shape[0]), randrange(0, W - self.mask_token.shape[1])) for i in range(B)]
         for i in range(B):
             # print(rand_indx[i])
-            labels[i,:,rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] + self.patch_size[1]]= \
-                x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
+            labels= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
             x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]] = self.mask_token
         return  self.proj(x),labels
 
@@ -683,13 +682,13 @@ class VisionTransformer(nn.Module):
         patch_index = patch_index[select[:, 0], select[:, 1]].view(B, -1, 2)
         pos_embed = pos_embed[select[:, 0], select[:, 1]].view(B, -1, C)
 
-        if mask_it:
-            label = label[select[:, 0], select[:, 1]].view(B, -1, 3)
-
-            label[x_mask == 0] = -100
-            label = torch.cat(
-                [torch.full((label.shape[0], 1, 3), -100).to(label), label,], dim=1,
-            )
+        # if mask_it:
+        #     label = label[select[:, 0], select[:, 1]].view(B, -1, 3)
+        #
+        #     label[x_mask == 0] = -100
+        #     label = torch.cat(
+        #         [torch.full((label.shape[0], 1, 3), -100).to(label), label,], dim=1,
+        #     )
 
         cls_tokens = self.cls_token.expand(B, -1, -1)
         x = torch.cat((cls_tokens, x), dim=1)
