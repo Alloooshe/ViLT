@@ -138,19 +138,21 @@ def compute_mpp(pl_module, batch):
         mpp_logits.view(-1),
         mpp_labels.view(-1),
     )
-    print(mpp_loss)
 
     ret = {
         "mpp_loss": mpp_loss,
-        "mpp_logits": mpp_logits,
-        "mpp_labels": mpp_labels,
+        "mpp_logits": mpp_logits.view(-1),
+        "mpp_labels": mpp_labels.view(-1),
     }
 
     phase = "train" if pl_module.training else "val"
+
     loss = getattr(pl_module, f"{phase}_mpp_loss")(ret["mpp_loss"])
+
     r2 = getattr(pl_module, f"{phase}_mpp_r2")(
         ret["mpp_logits"].view(-1), ret["mpp_labels"].view(-1)
     )
+
     pl_module.log(f"mpp/{phase}/loss", loss)
     pl_module.log(f"mpp/{phase}/r2", r2)
 

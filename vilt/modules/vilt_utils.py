@@ -37,7 +37,7 @@ def set_metrics(pl_module):
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
                 setattr(pl_module, f"{split}_{k}_wpa_loss", Scalar())
             elif k=="mpp":
-                setattr(pl_module,f"{split}_{k}_r2", Scalar())
+                setattr(pl_module,f"{split}_{k}_r2", R2())
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
             else:
                 setattr(pl_module, f"{split}_{k}_accuracy", Accuracy())
