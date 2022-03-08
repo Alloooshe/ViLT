@@ -576,7 +576,7 @@ class VisionTransformer(nn.Module):
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
-        # print("input shape before cnn",_x.shape)
+        print("input shape before projection",_x.shape)
         # _x = self.hybrid_backbone(_x)[0]
         # print("input shape after cnn", _x.shape)
         x = self.patch_embed(_x)
