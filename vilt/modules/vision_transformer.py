@@ -492,7 +492,7 @@ class VisionTransformer(nn.Module):
             embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.num_patches
-
+        print("num patches  )))))) ", num_patches)
         self.patch_size = patch_size
         self.patch_dim = img_size // patch_size
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
