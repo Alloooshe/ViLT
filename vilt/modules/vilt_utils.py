@@ -8,7 +8,7 @@ from transformers import (
 )
 from vilt.modules.dist_utils import all_gather
 from vilt.modules.objectives import compute_irtr_recall
-from vilt.gadgets.my_metrics import Accuracy, VQAScore, Scalar
+from vilt.gadgets.my_metrics import Accuracy, VQAScore, Scalar, R2
 
 
 def set_metrics(pl_module):
@@ -36,6 +36,8 @@ def set_metrics(pl_module):
                 setattr(pl_module, f"{split}_{k}_accuracy", Accuracy())
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())
                 setattr(pl_module, f"{split}_{k}_wpa_loss", Scalar())
+            elif k=="mpp":
+                setattr(pl_module,f"{split}_{k}_r2", R2())
             else:
                 setattr(pl_module, f"{split}_{k}_accuracy", Accuracy())
                 setattr(pl_module, f"{split}_{k}_loss", Scalar())

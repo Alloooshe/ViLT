@@ -147,11 +147,11 @@ def compute_mpp(pl_module, batch):
 
     phase = "train" if pl_module.training else "val"
     loss = getattr(pl_module, f"{phase}_mpp_loss")(ret["mpp_loss"])
-    # acc = getattr(pl_module, f"{phase}_mpp_accuracy")(
-    #     ret["mpp_logits"], ret["mpp_labels"]
-    # )
+    r2 = getattr(pl_module, f"{phase}_mpp_r2")(
+        ret["mpp_logits"], ret["mpp_labels"]
+    )
     pl_module.log(f"mpp/{phase}/loss", loss)
-    # pl_module.log(f"mpp/{phase}/accuracy", acc)
+    pl_module.log(f"mpp/{phase}/accuracy", r2)
 
     return ret
 

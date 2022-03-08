@@ -401,7 +401,7 @@ class PatchEmbed(nn.Module):
 
         self.embed_dim =embed_dim
 
-        print ("patch size  --------------- ", patch_size)
+        # print ("patch size  --------------- ", patch_size)
         self.proj = nn.Conv2d(
             in_chans,
             embed_dim,
@@ -409,8 +409,8 @@ class PatchEmbed(nn.Module):
             stride=patch_size,
             bias=False if no_patch_embed_bias else True,
         )
-        print("proj dims -------------------- ",self.proj.weight.shape)
-        print("proj_cnn dims -------------- ",self.getDims())
+        # print("proj dims -------------------- ",self.proj.weight.shape)
+        # print("proj_cnn dims -------------- ",self.getDims())
 
 
     def forward(self, x):
@@ -492,7 +492,7 @@ class VisionTransformer(nn.Module):
             embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.num_patches
-        print("num patches  )))))) ", num_patches)
+        # print("num patches  )))))) ", num_patches)
         self.patch_size = patch_size
         self.patch_dim = img_size // patch_size
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
@@ -578,22 +578,22 @@ class VisionTransformer(nn.Module):
             torch.bernoulli(torch.full(labels.shape[:-1], 0.8)).bool() & masked_indices
         )
 
-        # print("output indices_replaced shape ----------- ",indices_replaced.shape)
-        # print("output feats shape ----------- ",feats.shape)
+        # # print("output indices_replaced shape ----------- ",indices_replaced.shape)
+        # # print("output feats shape ----------- ",feats.shape)
         feats[indices_replaced] = self.mask_token.to(feats)
 
         return feats, labels
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
-        print("input shape before projection",_x.shape)
+        # print("input shape before projection",_x.shape)
         # _x = self.hybrid_backbone(_x)[0]
 
         x,label = self.patch_embed(_x)
-        print("input shape after projection", x.shape)
-        print("label shape after projection", label.shape)
+        # print("input shape after projection", x.shape)
+        # print("label shape after projection", label.shape)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
-        print ("first x_mask shape ---- ",x_mask.shape)
+        # print ("first x_mask shape ---- ",x_mask.shape)
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
@@ -703,9 +703,9 @@ class VisionTransformer(nn.Module):
         x_mask = torch.cat([torch.ones(x_mask.shape[0], 1).to(x_mask), x_mask], dim=1)
 
         if mask_it:
-            print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
-            print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
-            print(f" x !=0 {(x==0).nonzero()} ")
+            # print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
+            # print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
+            # print(f" x !=0 {(x==0).nonzero()} ")
             return x, x_mask, (patch_index, (H, W)), label
         else:
             return x, x_mask, (patch_index, (H, W)), None
