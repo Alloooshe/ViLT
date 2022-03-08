@@ -40,6 +40,8 @@ from timm.models.resnetv2 import ResNetV2
 from timm.models.registry import register_model
 from torchvision import transforms
 import torchvision.models as models
+from random import randrange
+
 
 _logger = logging.getLogger(__name__)
 
@@ -385,6 +387,7 @@ class PatchEmbed(nn.Module):
         in_chans=68,
         embed_dim=768,
         no_patch_embed_bias=False,
+        mask_token = None
     ):
         super().__init__()
         img_size = to_2tuple(img_size)
@@ -394,7 +397,7 @@ class PatchEmbed(nn.Module):
         self.patch_size = patch_size
         self.num_patches = num_patches
         #TODO add CNN embedder
-
+        self.mask_token = torch.zeros((patch_size,patch_size))
 
         self.embed_dim =embed_dim
 
@@ -411,7 +414,14 @@ class PatchEmbed(nn.Module):
 
 
     def forward(self, x):
-        return  self.proj(x)
+        B,C,H,W = x.shape
+        labels  = torch.zeros(x.shape).to(x)
+        rand_indx = [(randrange(0, H - self.mask_token.shape[0]), randrange(0, W - self.mask_token.shape[1])) for i in range(B)]
+        for i in range(B):
+            # print(rand_indx[i])
+            labels[i,:,rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] + self.patch_size]= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] +  self.patch_size]
+            x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size, rand_indx[i][1]:rand_indx[i][1] +  self.patch_size] = self.mask_token
+        return  self.proj(x),labels
 
     def getDims(self):
         return self.proj.weight.shape
@@ -579,8 +589,9 @@ class VisionTransformer(nn.Module):
         print("input shape before projection",_x.shape)
         # _x = self.hybrid_backbone(_x)[0]
 
-        x = self.patch_embed(_x)
+        x,label = self.patch_embed(_x)
         print("input shape after projection", x.shape)
+        print("label shape after projection", label.shape)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         print ("first x_mask shape ---- ",x_mask.shape)
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
@@ -620,8 +631,8 @@ class VisionTransformer(nn.Module):
         )
         x_mask = x_mask.flatten(1)
 
-        if mask_it:
-            x, label = self.mask_tokens(_x, x)
+        # if mask_it:
+        #     x, label = self.mask_tokens(_x, x)
 
         if (
             max_image_len < 0
