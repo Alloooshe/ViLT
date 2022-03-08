@@ -582,6 +582,7 @@ class VisionTransformer(nn.Module):
         x = self.patch_embed(_x)
         print("input shape after projection", x.shape)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
+        print ("first x_mask shape ---- ",x_mask.shape)
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
