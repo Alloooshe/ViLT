@@ -151,7 +151,7 @@ def compute_mpp(pl_module, batch):
         ret["mpp_logits"], ret["mpp_labels"]
     )
     pl_module.log(f"mpp/{phase}/loss", loss)
-    pl_module.log(f"mpp/{phase}/accuracy", r2)
+    pl_module.log(f"mpp/{phase}/r2", r2)
 
     return ret
 
