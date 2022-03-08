@@ -219,7 +219,7 @@ class ViLTransformerSS(pl.LightningModule):
         vilt_utils.set_task(self)
         output = self(batch)
         total_loss = sum([v for k, v in output.items() if "loss" in k])
-
+        self.log("totoal loss ",total_loss)
         return total_loss
 
     def training_epoch_end(self, outs):
