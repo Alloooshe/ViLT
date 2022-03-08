@@ -489,7 +489,7 @@ class VisionTransformer(nn.Module):
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
-            in_chans=68,
+            in_chans=1024,
             embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.num_patches
