@@ -134,7 +134,7 @@ def compute_mpp(pl_module, batch):
     print("mpp logits shape ",mpp_logits.view(-1).shape)
     print("mpp labels shape ",mpp_labels.view(-1).shape)
 
-    mpp_loss = F.cross_entropy(
+    mpp_loss = F.mse_loss(
         mpp_logits.view(-1),
         mpp_labels.view(-1),
         ignore_index=-100,
