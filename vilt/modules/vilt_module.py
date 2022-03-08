@@ -166,6 +166,7 @@ class ViLTransformerSS(pl.LightningModule):
             x[:, : text_embeds.shape[1]],
             x[:, text_embeds.shape[1] :],
         )
+        #TODO use this approach for image pooling
         cls_feats = self.pooler(x)
 
         ret = {
@@ -218,8 +219,11 @@ class ViLTransformerSS(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         vilt_utils.set_task(self)
         output = self(batch)
-        total_loss = sum([v for k, v in output.items() if "loss" in k])
-        self.log("totoal loss ",total_loss)
+        loss_vals = [v for k, v in output.items() if "loss" in k]
+        print("losses val ",loss_vals)
+        total_loss = sum(loss_vals)
+        print("total loss ",total_loss)
+
         return total_loss
 
     def training_epoch_end(self, outs):

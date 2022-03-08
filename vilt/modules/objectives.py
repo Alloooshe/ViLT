@@ -104,7 +104,7 @@ def compute_mlm(pl_module, batch):
         "mlm_labels": mlm_labels,
         "mlm_ids": infer["text_ids"],
     }
-    print("mlm loss hape ", mlm_loss)
+    # print("mlm loss hape ", mlm_loss)
     phase = "train" if pl_module.training else "val"
     loss = getattr(pl_module, f"{phase}_mlm_loss")(ret["mlm_loss"])
     acc = getattr(pl_module, f"{phase}_mlm_accuracy")(
@@ -138,7 +138,7 @@ def compute_mpp(pl_module, batch):
         mpp_logits,
         mpp_labels.view(-1,3*32*32),
     )
-    print("mpp loss shape ", mpp_loss)
+    # print("mpp loss shape ", mpp_loss)
     ret = {
         "mpp_loss": mpp_loss,
         "mpp_logits": mpp_logits,
@@ -267,7 +267,7 @@ def compute_itm_wpa(pl_module, batch):
         "itm_logits": itm_logits,
         "itm_labels": itm_labels,
     }
-    print("itm loss shape ",itm_loss)
+    # print("itm loss shape ",itm_loss)
     phase = "train" if pl_module.training else "val"
     loss = getattr(pl_module, f"{phase}_itm_loss")(ret["itm_loss"])
     wpa_loss = getattr(pl_module, f"{phase}_itm_wpa_loss")(ret["itm_wpa_loss"])
