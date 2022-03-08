@@ -1,6 +1,28 @@
 import torch
 from pytorch_lightning.metrics import Metric
 
+class R2(Metric):
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+        self.add_state("correct", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, logits, target):
+        logits, target = (
+            logits.detach().to(self.correct.device),
+            target.detach().to(self.correct.device),
+        )
+        target_mean = torch.mean(target)
+        ss_tot = torch.sum((target - target_mean) ** 2)
+        ss_res = torch.sum((target - logits) ** 2)
+        r2 = 1 - ss_res / ss_tot
+
+        self.correct += r2
+        self.total += target.numel()
+
+    def compute(self):
+        return self.correct / self.total
+
 
 class Accuracy(Metric):
     def __init__(self, dist_sync_on_step=False):
