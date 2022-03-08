@@ -535,28 +535,28 @@ class VisionTransformer(nn.Module):
     def no_weight_decay(self):
         return {"pos_embed", "cls_token"}
 
-    def mask_tokens(self, orig_image, feats,batch_size,channel_num):
+    def mask_tokens(self, orig_image, feats):
         """
         Prepare masked tokens inputs/labels for masked patch prediction: 80% MASK, 10% random, 10% original.
         """
 
-        # img_unnorm = orig_image * 0.5 + 0.5
-        # _, _, ph, pw = self.patch_embed.getDims()
-        # with torch.no_grad():
-        #     img_unnorm_patch = F.conv2d(
-        #         img_unnorm,
-        #         weight=torch.ones(channel_num , 1, 1, 1).to(img_unnorm) ,
-        #         bias=None,
-        #         stride=1,
-        #         padding=0,
-        #         groups=3,
-        #     )
-        # labels = (
-        #     ((img_unnorm_patch * 255).long().flatten(start_dim=2, end_dim=3))
-        #     .permute(0, 2, 1)
-        #     .contiguous()
-        # )
-        labels = feats
+        img_unnorm = orig_image * 0.5 + 0.5
+        _, _, ph, pw = self.patch_embed.getDims()
+        with torch.no_grad():
+            img_unnorm_patch = F.conv2d(
+                img_unnorm,
+                weight=torch.ones(3 , 1, ph, pw).to(img_unnorm)/(ph*pw) ,
+                bias=None,
+                stride=(ph,pw),
+                padding=0,
+                groups=3,
+            )
+        labels = (
+            ((img_unnorm_patch * 255).long().flatten(start_dim=2, end_dim=3))
+            .permute(0, 2, 1)
+            .contiguous()
+        )
+        # labels = feats
 
         # We sample a few tokens in each sequence for MLM training (with probability `self.mlm_probability`)
         probability_matrix = torch.full(labels.shape[:-1], 0.15)
@@ -575,10 +575,10 @@ class VisionTransformer(nn.Module):
         return feats, labels
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
-        BB, CC, ph, pw = self.patch_embed.getDims()
-        print("input shape before cnn",_x.shape)
-        _x = self.hybrid_backbone(_x)[0]
-        print("input shape after cnn", _x.shape)
+        _, _, ph, pw = self.patch_embed.getDims()
+        # print("input shape before cnn",_x.shape)
+        # _x = self.hybrid_backbone(_x)[0]
+        # print("input shape after cnn", _x.shape)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
@@ -619,7 +619,7 @@ class VisionTransformer(nn.Module):
         x_mask = x_mask.flatten(1)
 
         if mask_it:
-            x, label = self.mask_tokens(_x, x,BB, CC)
+            x, label = self.mask_tokens(_x, x)
 
         if (
             max_image_len < 0
@@ -691,6 +691,7 @@ class VisionTransformer(nn.Module):
         x_mask = torch.cat([torch.ones(x_mask.shape[0], 1).to(x_mask), x_mask], dim=1)
 
         if mask_it:
+            print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
             return x, x_mask, (patch_index, (H, W)), label
         else:
             return x, x_mask, (patch_index, (H, W)), None
