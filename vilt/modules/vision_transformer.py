@@ -455,6 +455,7 @@ class VisionTransformer(nn.Module):
         add_norm_before_transformer=False,
         no_patch_embed_bias=False,
         config=None,
+        hybrid_backbone = None
     ):
         """
         Args:
@@ -499,6 +500,8 @@ class VisionTransformer(nn.Module):
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_rate)
 
+        if hybrid_backbone :
+            self.hybrid_backbone = hybrid_backbone
         if add_norm_before_transformer:
             self.pre_norm = norm_layer(embed_dim)
 
@@ -584,8 +587,9 @@ class VisionTransformer(nn.Module):
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
-        # print("input shape ",_x.shape)
-        _x = self.patch_embed.apply_cnn_prepatch(_x)
+        print("input shape before cnn",_x.shape)
+        _x = self.hybrid_backbone(_x)
+        print("input shape after cnn", _x.shape)
         x = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
