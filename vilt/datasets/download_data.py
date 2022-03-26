@@ -42,7 +42,8 @@ if __name__=="__main__" :
             full_name_path = os.path.join(path, name)
             if "stats" in name or "parquet" in name or name.endswith(".txt") :
                 os.remove(full_name_path)
-
+            if "train_annot" in name or "val_annot" in name :
+                continue
             elif name.endswith(".json"):
                 with open(full_name_path, 'rb') as f:
                     tmp = json.load(f)
