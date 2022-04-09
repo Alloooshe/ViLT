@@ -443,7 +443,7 @@ class PatchEmbed(nn.Module):
 
         # add -100 for loss calculation
         dummy = torch.tensor([-100]).float()
-        slices[:, visible_idx, :, :] = dummy.repeat(1, self.num_patches-random_cut, C, self.patch_size,self.patch_size)
+        slices[:, visible_idx, :, :] = dummy.repeat(1, self.num_patches-random_cut, C, self.patch_size(0),self.patch_size(1))
         # slices are label now
 
         return  full_tokens,slices
