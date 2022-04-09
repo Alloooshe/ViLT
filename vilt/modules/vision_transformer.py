@@ -445,7 +445,9 @@ class PatchEmbed(nn.Module):
         dummy = torch.tensor([-100]).float()
         slices[:, visible_idx, :, :] = dummy.repeat(1, self.num_patches-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
         # slices are label now
+        print("full token shape ", full_tokens.shape)
         full_tokens=full_tokens.view(B,self.embed_dim, self.num_patches, self.num_patches)
+        print("full token shape 2 ", full_tokens.shape)
         return  full_tokens,slices
 
     def getDims(self):
