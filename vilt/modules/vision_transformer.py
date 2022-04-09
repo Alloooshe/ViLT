@@ -418,7 +418,7 @@ class PatchEmbed(nn.Module):
     def forward(self, x):
         B,C,H,W = x.shape
         # slice images
-        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
+        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size(0), self.patch_size(1)).unfold(3, self.patch_size(0), self.patch_size(1))
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
         # choose visible and in visible patches
         random_indx = torch.randperm(self.num_patches)
