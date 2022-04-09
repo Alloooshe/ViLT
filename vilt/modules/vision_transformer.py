@@ -447,7 +447,7 @@ class PatchEmbed(nn.Module):
         # slices are label now
         print("full token shape ", full_tokens.shape)
         print ("what you should havbe ",self.proj(x).shape)
-        full_tokens=full_tokens.view(B,self.embed_dim, self.num_patches, self.num_patches)
+        full_tokens=full_tokens.transpose(1,2)
         print("full token shape 2 ", full_tokens.shape)
         return  full_tokens,slices
 
@@ -616,7 +616,7 @@ class VisionTransformer(nn.Module):
         _, _, ph, pw = self.patch_embed.getDims()
         x,label = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
-        x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
+        x_mask = F.interpolate(x_mask, size=(x.shape[2]/2, x.shape[2]/2)).long()
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
 
