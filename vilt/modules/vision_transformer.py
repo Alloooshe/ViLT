@@ -397,9 +397,11 @@ class PatchEmbed(nn.Module):
         self.patch_size = patch_size
         self.num_patches = num_patches
         #TODO add CNN embedder
-        self.mask_token = torch.zeros(patch_size)
+        self.mask_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
+        trunc_normal_(self.mask_token, std=0.02)
 
         self.embed_dim =embed_dim
+        self.masking_per = 0.8
 
         # print ("patch size  --------------- ", patch_size)
         self.proj = nn.Conv2d(
@@ -415,13 +417,36 @@ class PatchEmbed(nn.Module):
 
     def forward(self, x):
         B,C,H,W = x.shape
-        labels  = torch.zeros((B,C,self.patch_size[0],self.patch_size[1])).to(x)
-        rand_indx = [(randrange(0, H - self.mask_token.shape[0]), randrange(0, W - self.mask_token.shape[1])) for i in range(B)]
-        for i in range(B):
-            # print(rand_indx[i])
-            labels[i]= x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]]
-            x[i, :, rand_indx[i][0]:rand_indx[i][0] +  self.patch_size[0], rand_indx[i][1]:rand_indx[i][1] +  self.patch_size[1]] = self.mask_token
-        return  self.proj(x),labels
+        # slice images
+        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
+        slices = torch.flatten(slices, start_dim=1, end_dim=3)
+        # choose visible and in visible patches
+        random_indx = torch.randperm(self.num_patches)
+        random_cut = int(self.num_patches * self.masking_per)
+        visible_idx = random_indx[random_cut:]
+        nonvisible_idx = random_indx[:random_cut]
+        to_embed_patches = slices[:, visible_idx, :, :]
+        labels = slices[:, nonvisible_idx, :, :]
+
+        # pass visible patches through projection
+        flattened_patches = torch.flatten(to_embed_patches, 0, 1)
+        tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim)
+
+        # add maske tokens
+
+        padding_mask_tokens = self.mask_token.expand(-1, random_cut, -1)
+        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
+
+        # unshuffle
+        unshuffled_tokens = torch.zeros_like(full_tokens)
+        unshuffled_tokens[:, random_indx, :] = full_tokens
+
+        # add -100 for loss calculation
+        dummy = torch.tensor([-100]).float()
+        slices[:, visible_idx, :, :] = dummy.repeat(1, self.num_patches-random_cut, C, self.patch_size,self.patch_size)
+        # slices are label now
+
+        return  full_tokens,slices
 
     def getDims(self):
         return self.proj.weight.shape
@@ -586,14 +611,8 @@ class VisionTransformer(nn.Module):
 
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
-        # print("input shape before projection",_x.shape)
-        # _x = self.hybrid_backbone(_x)[0]
-
         x,label = self.patch_embed(_x)
-        # print("input shape after projection", x.shape)
-        # print("label shape after projection", label.shape)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
-        # print ("first x_mask shape ---- ",x_mask.shape)
         x_mask = F.interpolate(x_mask, size=(x.shape[2], x.shape[3])).long()
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
@@ -680,6 +699,7 @@ class VisionTransformer(nn.Module):
         x_mask = x_mask[select[:, 0], select[:, 1]].view(B, -1)
         patch_index = patch_index[select[:, 0], select[:, 1]].view(B, -1, 2)
         pos_embed = pos_embed[select[:, 0], select[:, 1]].view(B, -1, C)
+
 
         # if mask_it:
         #     label = label[select[:, 0], select[:, 1]].view(B, -1, 3)
