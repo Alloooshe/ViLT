@@ -434,7 +434,7 @@ class PatchEmbed(nn.Module):
 
         # add maske tokens
 
-        padding_mask_tokens = self.mask_token.expand(-1, random_cut, -1)
+        padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
         full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
 
         # unshuffle
