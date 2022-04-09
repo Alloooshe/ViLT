@@ -435,7 +435,7 @@ class PatchEmbed(nn.Module):
         # add maske tokens
 
         padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
-        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
+        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1).transpose(1,2)
 
         # unshuffle
         unshuffled_tokens = torch.zeros_like(full_tokens)
@@ -444,11 +444,8 @@ class PatchEmbed(nn.Module):
         # add -100 for loss calculation
         dummy = torch.tensor([-100]).float()
         slices[:, visible_idx, :, :] = dummy.repeat(1, self.num_patches-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
+
         # slices are label now
-        print("full token shape ", full_tokens.shape)
-        print ("what you should havbe ",self.proj(x).shape)
-        full_tokens=full_tokens.transpose(1,2)
-        print("full token shape 2 ", full_tokens.shape)
         return  full_tokens,slices
 
     def getDims(self):
@@ -616,7 +613,9 @@ class VisionTransformer(nn.Module):
         _, _, ph, pw = self.patch_embed.getDims()
         x,label = self.patch_embed(_x)
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
-        x_mask = F.interpolate(x_mask, size=(int(x.shape[2]/2),int( x.shape[2]/2) )).long()
+        print("x_mask shape ",x_mask.shape )
+        x_mask = F.interpolate(x_mask, size=(x.shape[2])).long()
+        print("x_mask shape 2", x_mask.shape)
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
 
