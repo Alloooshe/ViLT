@@ -48,7 +48,8 @@ class MPPHead(nn.Module):
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
         #TODO add CNN decoder
-        self.decoder =nn.ConvTranspose2d(768, 3, (32,32), stride=32)
+        self.reduce_dims = nn.Linear(config.hidden_size, 128)
+        self.decoder =nn.ConvTranspose2d(128, 3, (32,32), stride=32)
 
     def forward(self, x,patch_indx):
         start = time.time()
@@ -60,6 +61,7 @@ class MPPHead(nn.Module):
         B,D,T = x.shape
         # print("transformed x shape ", x.shape)
         x = x.view (B,D,H,W)
+        self.reduce_dims
         x = self.decoder(x)
         t1 = time.time()
         print("decode time ", (t1 - start) / 1000)
