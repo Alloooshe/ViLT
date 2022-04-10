@@ -57,7 +57,7 @@ class MPPHead(nn.Module):
         x = x[:,:-1,:]
         x= x.transpose(1,2)
         B,D,T = x.shape
-        print("transformed x shape ", x.shape)
+        # print("transformed x shape ", x.shape)
         x = x.view (B,D,H,W)
         x = self.decoder(x)
         x= x.unfold(1, 3, 3).unfold(2, 32, 32).unfold(3, 32, 32)

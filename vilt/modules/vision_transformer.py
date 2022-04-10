@@ -418,12 +418,12 @@ class PatchEmbed(nn.Module):
     def forward(self, x):
         B,C,H,W = x.shape
         # slice images
-        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1])
+        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1]).to(x)
         _,_,H,W,_,_,_ = slices.shape
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
         # print("shape slices ",slices.shape)
         # choose visible and in visible patches
-        random_indx = torch.randperm(slices.shape[1])
+        random_indx = torch.randperm(slices.shape[1]).to(x)
         # print("random index shape ",random_indx.shape)
         random_cut = int(slices.shape[1] * self.masking_per)
         visible_idx = random_indx[random_cut:]
@@ -433,7 +433,7 @@ class PatchEmbed(nn.Module):
 
         # pass visible patches through projection
         flattened_patches = torch.flatten(to_embed_patches, 0, 1)
-        tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim)
+        tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim).to(x)
 
         # add maske tokens
 
@@ -445,8 +445,8 @@ class PatchEmbed(nn.Module):
         unshuffled_tokens[:, random_indx, :] = full_tokens
 
         # add -100 for loss calculation
-        dummy = torch.tensor([-100]).float()
-        slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
+        dummy = torch.tensor([-100]).float().to(x)
+        slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1])
 
         # slices are label now
 
@@ -736,7 +736,7 @@ class VisionTransformer(nn.Module):
         x_mask = torch.cat([torch.ones(x_mask.shape[0], 1).to(x_mask), x_mask], dim=1)
 
         if mask_it:
-            print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
+            # print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
             # print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
             # print(f" x !=0 {(x==0).nonzero()} ")
 
