@@ -57,8 +57,10 @@ class MPPHead(nn.Module):
         x = self.transform(x)
 
         x = x[:,:-1,:]
-        x= x.transpose(1,2)
+
         x = self.reduce_dims(x)
+
+        x = x.transpose(1, 2)
         B,D,T = x.shape
         # print("transformed x shape ", x.shape)
         x = x.view (B,D,H,W)
