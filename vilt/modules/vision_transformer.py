@@ -422,7 +422,7 @@ class PatchEmbed(nn.Module):
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
         print("shape slices ",slices.shape)
         # choose visible and in visible patches
-        random_indx = torch.randperm(self.slices.shape[1])
+        random_indx = torch.randperm(slices.shape[1])
         print("random index shape ",random_indx.shape)
         random_cut = int(slices.shape[1] * self.masking_per)
         visible_idx = random_indx[random_cut:]
