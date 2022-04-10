@@ -421,6 +421,8 @@ class PatchEmbed(nn.Module):
         B,C,H,W = x.shape
         # slice images
         slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1]).to(x)
+        t1 = time.time()
+        print("unfolding time ", (t1 - start) / 1000)
         _,_,H,W,_,_,_ = slices.shape
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
         # print("shape slices ",slices.shape)
@@ -436,7 +438,8 @@ class PatchEmbed(nn.Module):
         # pass visible patches through projection
         flattened_patches = torch.flatten(to_embed_patches, 0, 1)
         tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim)
-
+        t1 = time.time()
+        print("tokenize time ", (t1 - start) / 1000)
         # add maske tokens
 
         padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
