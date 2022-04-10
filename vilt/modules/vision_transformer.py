@@ -706,7 +706,9 @@ class VisionTransformer(nn.Module):
                 )
 
         select = torch.cat(select, dim=0)
+        print("x shape before select ", x.shape)
         x = x[select[:, 0], select[:, 1]].view(B, -1, C)
+        print("x shape after select ",x.shape)
         x_mask = x_mask[select[:, 0], select[:, 1]].view(B, -1)
         patch_index = patch_index[select[:, 0], select[:, 1]].view(B, -1, 2)
         pos_embed = pos_embed[select[:, 0], select[:, 1]].view(B, -1, C)
@@ -738,8 +740,7 @@ class VisionTransformer(nn.Module):
             print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
             # print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
             # print(f" x !=0 {(x==0).nonzero()} ")
-            torch.set_printoptions(threshold=10_000)
-            print("mask is stupid ",x_mask)
+
             return x, x_mask, None, label
         else:
             return x, x_mask, None, None
