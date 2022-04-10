@@ -61,7 +61,10 @@ class MPPHead(nn.Module):
         # print("transformed x shape ", x.shape)
         x = x.view (B,D,H,W)
         x = self.decoder(x)
+        t1 = time.time()
+        print("decode time ", (t1 - start) / 1000)
         x= x.unfold(1, 3, 3).unfold(2, 32, 32).unfold(3, 32, 32)
+
         x = torch.flatten(x, start_dim=1, end_dim=3)
         end = time.time()
         print("head time ", (end - start)/1000 )
