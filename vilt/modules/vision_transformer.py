@@ -424,7 +424,7 @@ class PatchEmbed(nn.Module):
         # choose visible and in visible patches
         random_indx = torch.randperm(self.slices.shape[1])
         print("random index shape ",random_indx.shape)
-        random_cut = int(self.slices.shape[1] * self.masking_per)
+        random_cut = int(slices.shape[1] * self.masking_per)
         visible_idx = random_indx[random_cut:]
         nonvisible_idx = random_indx[:random_cut]
         to_embed_patches = slices[:, visible_idx, :, :]
@@ -445,7 +445,7 @@ class PatchEmbed(nn.Module):
 
         # add -100 for loss calculation
         dummy = torch.tensor([-100]).float()
-        slices[:, visible_idx, :, :] = dummy.repeat(1, self.slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
+        slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
 
         # slices are label now
         print("full tokens shape ",full_tokens.shape)
