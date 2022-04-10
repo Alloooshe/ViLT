@@ -118,7 +118,7 @@ def compute_mlm(pl_module, batch):
 
 def compute_mpp(pl_module, batch):
     infer = pl_module.infer(batch, mask_text=False, mask_image=True)
-    mpp_logits = pl_module.mpp_score(infer["image_feats"])
+    mpp_logits = pl_module.mpp_score(infer["image_feats"],infer["patch_index"])
     # mpp_logits = torch.stack(
     #     [
     #         mpp_logits[:, :, 0:1024],
@@ -131,18 +131,29 @@ def compute_mpp(pl_module, batch):
     # mpp_logits = torch.reshape(mpp_logits,(mpp_logits.shape[0],mpp_logits.shape[1],16,16))
     mpp_labels = infer["image_labels"]
 
+
     # print("mpp logits shape ",mpp_logits.view(-1).shape)
     # print("mpp labels shape ",mpp_labels.view(-1).shape)
+    def mse_loss(input, target, ignored_index, reduction):
+        mask = target == ignored_index
+        out = (input[~mask] - target[~mask]) ** 2
+        if reduction == "mean":
+            return out.mean()
+        elif reduction == "None":
+            return out
 
-    mpp_loss = F.mse_loss(
+    mpp_loss = mse_loss(
         mpp_logits,
-        mpp_labels.view(-1,3*32*32),
+        mpp_labels,
+        -100,
+        "mean"
+
     )
     # print("mpp loss shape ", mpp_loss)
     ret = {
         "mpp_loss": mpp_loss,
         "mpp_logits": mpp_logits,
-        "mpp_labels": mpp_labels.view(-1,3*32*32),
+        "mpp_labels": mpp_labels,
     }
 
     phase = "train" if pl_module.training else "val"

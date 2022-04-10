@@ -48,12 +48,19 @@ class MPPHead(nn.Module):
         super().__init__()
         self.transform = BertPredictionHeadTransform(config)
         #TODO add CNN decoder
-        self.decoder = nn.Linear(config.hidden_size, 32*32 * 3)
+        self.decoder =nn.ConvTranspose2d(768, 3, (32,32), stride=32)
 
-    def forward(self, x):
+    def forward(self, x,patch_indx):
+        H,W = patch_indx
         x = self.transform(x)
-        print("transformed x shape ",x.shape)
-        pooled = nn.MaxPool1d(x.shape[1], stride=1)
-        x = pooled(x.permute(0, 2, 1)).permute(0, 2, 1)[:,0,:]
+
+        x = x[:,:-1,:]
+        x= x.tanspose(1,2)
+        B,D,T = x.shape
+        print("transformed x shape ", x.shape)
+        x = x.view (B,D,H,W)
         x = self.decoder(x)
+        x= x.unfold(1, 3, 3).unfold(2, 32, 32).unfold(3, 32, 32)
+        x = torch.flatten(x, start_dim=1, end_dim=3)
+
         return x
