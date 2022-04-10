@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import time
 from transformers.models.bert.modeling_bert import BertPredictionHeadTransform
 
 
@@ -51,6 +51,7 @@ class MPPHead(nn.Module):
         self.decoder =nn.ConvTranspose2d(768, 3, (32,32), stride=32)
 
     def forward(self, x,patch_indx):
+        start = time.time()
         H,W = patch_indx
         x = self.transform(x)
 
@@ -62,5 +63,7 @@ class MPPHead(nn.Module):
         x = self.decoder(x)
         x= x.unfold(1, 3, 3).unfold(2, 32, 32).unfold(3, 32, 32)
         x = torch.flatten(x, start_dim=1, end_dim=3)
+        end = time.time()
+        print("head time ", (end - start)/1000 )
 
         return x
