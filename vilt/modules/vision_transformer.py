@@ -41,6 +41,7 @@ from timm.models.registry import register_model
 from torchvision import transforms
 import torchvision.models as models
 from random import randrange
+import torch.autograd.profiler as profiler
 
 
 _logger = logging.getLogger(__name__)
@@ -416,43 +417,44 @@ class PatchEmbed(nn.Module):
 
 
     def forward(self, x):
-        B,C,H,W = x.shape
-        # slice images
-        slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1]).to(x)
-        _,_,H,W,_,_,_ = slices.shape
-        slices = torch.flatten(slices, start_dim=1, end_dim=3)
-        # print("shape slices ",slices.shape)
-        # choose visible and in visible patches
-        random_indx = torch.randperm(slices.shape[1])
-        # print("random index shape ",random_indx.shape)
-        random_cut = int(slices.shape[1] * self.masking_per)
-        visible_idx = random_indx[random_cut:]
-        nonvisible_idx = random_indx[:random_cut]
-        to_embed_patches = slices[:, visible_idx, :, :]
-        labels = slices[:, nonvisible_idx, :, :]
+        with profiler.record_function("patch embedding"):
+            B,C,H,W = x.shape
+            # slice images
+            slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1]).to(x)
+            _,_,H,W,_,_,_ = slices.shape
+            slices = torch.flatten(slices, start_dim=1, end_dim=3)
+            # print("shape slices ",slices.shape)
+            # choose visible and in visible patches
+            random_indx = torch.randperm(slices.shape[1])
+            # print("random index shape ",random_indx.shape)
+            random_cut = int(slices.shape[1] * self.masking_per)
+            visible_idx = random_indx[random_cut:]
+            nonvisible_idx = random_indx[:random_cut]
+            to_embed_patches = slices[:, visible_idx, :, :]
+            labels = slices[:, nonvisible_idx, :, :]
 
-        # pass visible patches through projection
-        flattened_patches = torch.flatten(to_embed_patches, 0, 1)
-        tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim).to(x)
+            # pass visible patches through projection
+            flattened_patches = torch.flatten(to_embed_patches, 0, 1)
+            tokens = self.proj(flattened_patches).view(B, -1, self.embed_dim)
 
-        # add maske tokens
+            # add maske tokens
 
-        padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
-        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
+            padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
+            full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
 
-        # unshuffle
-        unshuffled_tokens = torch.zeros_like(full_tokens)
-        unshuffled_tokens[:, random_indx, :] = full_tokens
+            # unshuffle
+            unshuffled_tokens = torch.zeros_like(full_tokens)
+            unshuffled_tokens[:, random_indx, :] = full_tokens
 
-        # add -100 for loss calculation
-        dummy = torch.tensor([-100]).float().to(x)
-        slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1])
+            # add -100 for loss calculation
+            dummy = torch.tensor([-100]).float().to(x)
+            slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1])
 
-        # slices are label now
+            # slices are label now
 
-        full_tokens = full_tokens.transpose(1,2)
-        B,D,_ = full_tokens.shape
-        full_tokens = full_tokens.view(B,D,H,W)
+            full_tokens = full_tokens.transpose(1,2)
+            B,D,_ = full_tokens.shape
+            full_tokens = full_tokens.view(B,D,H,W)
         # print("full tokens shape ", full_tokens.shape)
         # print("slices shape ", slices.shape)
         return  full_tokens,slices
