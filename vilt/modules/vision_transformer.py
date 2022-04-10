@@ -419,6 +419,7 @@ class PatchEmbed(nn.Module):
         B,C,H,W = x.shape
         # slice images
         slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1])
+        _,_,H,W,_,_,_ = slices.shape
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
         print("shape slices ",slices.shape)
         # choose visible and in visible patches
@@ -448,8 +449,12 @@ class PatchEmbed(nn.Module):
         slices[:, visible_idx, :, :] = dummy.repeat(1, slices.shape[1]-random_cut, C, self.patch_size[0],self.patch_size[1]).to(x)
 
         # slices are label now
-        print("full tokens shape ",full_tokens.shape)
-        print("slices shape ",slices.shape)
+
+        full_tokens = full_tokens.transpose(1,2)
+        B,D,_ = full_tokens.shape
+        full_tokens = full_tokens.view(B,D,H,W)
+        print("full tokens shape ", full_tokens.shape)
+        print("slices shape ", slices.shape)
         return  full_tokens,slices
 
     def getDims(self):
@@ -616,17 +621,10 @@ class VisionTransformer(nn.Module):
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
         x,label = self.patch_embed(_x)
-        B,N,D = x.shape
-        x= x.transpose(1,2)
-        if N %2 ==1 :
-            tt = 1
-        else :
-            tt=0
-        x = x.view(B,D,N//2,N//2+tt)
         # x= self.patch_embed.proj(_x)
         ##
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
-        x_mask = F.interpolate(x_mask, size=(x.shape[1]//2,x.shape[1]//2)).long()
+        x_mask = F.interpolate(x_mask, size=(x.shape[2],x.shape[3])).long()
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
 
