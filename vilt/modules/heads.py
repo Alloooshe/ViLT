@@ -61,7 +61,7 @@ class MPPHead(nn.Module):
         B,D,T = x.shape
         # print("transformed x shape ", x.shape)
         x = x.view (B,D,H,W)
-        self.reduce_dims
+        x= self.reduce_dims(x)
         x = self.decoder(x)
         t1 = time.time()
         print("decode time ", (t1 - start) / 1000)
