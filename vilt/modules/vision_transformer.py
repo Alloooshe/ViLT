@@ -722,7 +722,7 @@ class VisionTransformer(nn.Module):
 
         #check if cls token is important
         cls_tokens = self.cls_token.expand(B, -1, -1)
-        # x = torch.cat((cls_tokens, x), dim=1)
+        x = torch.cat((cls_tokens, x), dim=1)
         pos_embed = torch.cat(
             (self.pos_embed[:, 0, :][:, None, :].expand(B, -1, -1), pos_embed), dim=1
         )
@@ -740,7 +740,7 @@ class VisionTransformer(nn.Module):
             # print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
             # print(f" x !=0 {(x==0).nonzero()} ")
 
-            return x, x_mask, None, label
+            return x, x_mask, (H,W), label
         else:
             return x, x_mask, None, None
 
