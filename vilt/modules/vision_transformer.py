@@ -420,8 +420,10 @@ class PatchEmbed(nn.Module):
         # slice images
         slices = x.unfold(1, 3, 3).unfold(2, self.patch_size[0], self.patch_size[1]).unfold(3, self.patch_size[0], self.patch_size[1])
         slices = torch.flatten(slices, start_dim=1, end_dim=3)
+        print("shape slices ",slices.shape)
         # choose visible and in visible patches
         random_indx = torch.randperm(self.num_patches)
+        print("random index shape ",random_indx.shape)
         random_cut = int(self.num_patches * self.masking_per)
         visible_idx = random_indx[random_cut:]
         nonvisible_idx = random_indx[:random_cut]
@@ -435,7 +437,7 @@ class PatchEmbed(nn.Module):
         # add maske tokens
 
         padding_mask_tokens = self.mask_token.expand(B, random_cut, -1)
-        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1).transpose(1,2)
+        full_tokens = torch.cat([padding_mask_tokens, tokens], dim=1)
 
         # unshuffle
         unshuffled_tokens = torch.zeros_like(full_tokens)
@@ -612,6 +614,8 @@ class VisionTransformer(nn.Module):
     def visual_embed(self, _x, max_image_len=200, mask_it=False):
         _, _, ph, pw = self.patch_embed.getDims()
         x,label = self.patch_embed(_x)
+
+        ##
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         print("x_mask shape ",x_mask.shape )
         x_mask = F.interpolate(x_mask, size=(x.shape[2])).long()
@@ -716,6 +720,7 @@ class VisionTransformer(nn.Module):
         pos_embed = torch.cat(
             (self.pos_embed[:, 0, :][:, None, :].expand(B, -1, -1), pos_embed), dim=1
         )
+        ##
         x = x + pos_embed
         x = self.pos_drop(x)
 
