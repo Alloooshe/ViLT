@@ -620,7 +620,7 @@ class VisionTransformer(nn.Module):
         ##
         x_mask = (_x.sum(dim=1) != 0).float()[:, None, :, :]
         print("x_mask shape ",x_mask.shape )
-        x_mask = F.interpolate(x_mask, size=(x.shape[2])).long()
+        x_mask = F.interpolate(x_mask, size=(x.shape[1])).long()
         print("x_mask shape 2", x_mask.shape)
         x_h = x_mask[:, 0].sum(dim=1)[:, 0]
         x_w = x_mask[:, 0].sum(dim=2)[:, 0]
@@ -732,12 +732,12 @@ class VisionTransformer(nn.Module):
         x_mask = torch.cat([torch.ones(x_mask.shape[0], 1).to(x_mask), x_mask], dim=1)
 
         if mask_it:
-            # print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
+            print(f" x shape  {x.shape }  x_mask shape {x_mask.shape}   patch_index shape {patch_index.shape}  label shape  {label.shape} ")
             # print(f" x_mask !=0 {(x_mask ==0).nonzero()} ")
             # print(f" x !=0 {(x==0).nonzero()} ")
-            return x, x_mask, (patch_index, (H, W)), label
+            return x, x_mask, None, label
         else:
-            return x, x_mask, (patch_index, (H, W)), None
+            return x, x_mask, None, None
 
     def forward_features(self, _x, max_image_len=144, mask_it=False):
         x, x_mask, patch_index, label = self.visual_embed(
