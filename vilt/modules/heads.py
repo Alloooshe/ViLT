@@ -52,7 +52,7 @@ class MPPHead(nn.Module):
 
     def forward(self, x):
         x = self.transform(x)
-        # print("transformed x shape ",x.shape)
+        print("transformed x shape ",x.shape)
         pooled = nn.MaxPool1d(x.shape[1], stride=1)
         x = pooled(x.permute(0, 2, 1)).permute(0, 2, 1)[:,0,:]
         x = self.decoder(x)
