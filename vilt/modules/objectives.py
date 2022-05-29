@@ -142,6 +142,10 @@ def compute_mpp(pl_module, batch):
         elif reduction == "None":
             return out
 
+    print ("mpp logits shape ", mpp_logits.shape)
+    print ("mpp labels shape ", mpp_labels.shape)
+    print ("mpp logits  ", mpp_logits[:20])
+    print ("mpp labels  ", mpp_labels[:20])
     mpp_loss = mse_loss(
         mpp_logits,
         mpp_labels,
